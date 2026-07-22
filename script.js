@@ -20,6 +20,13 @@ const translations = {
     emailButton: "Send an email",
     githubButton: "GitHub",
     githubProfile: "GitHub profile",
+    copyContactLabel: "Copy contact details",
+    phoneLabel: "Phone",
+    copyPhone: "Copy phone",
+    copyEmail: "Copy email",
+    copyPhoneSuccess: "Phone number copied to the clipboard.",
+    copyEmailSuccess: "Email address copied to the clipboard.",
+    copyFailure: "Copying failed. Please select and copy the text manually.",
     externalLinkNotice: " (opens in a new tab)",
     overviewEyebrow: "Key information",
     overviewTitle: "Availability and profile",
@@ -122,12 +129,27 @@ const languageButtons = document.querySelectorAll("[data-language]");
 const translatableElements = document.querySelectorAll("[data-i18n]");
 const ariaTranslatableElements = document.querySelectorAll("[data-i18n-aria-label]");
 const description = document.querySelector('meta[name="description"]');
+const copyButtons = document.querySelectorAll("[data-copy]");
+const copyStatus = document.querySelector("#copy-status");
 const polishText = new Map(
   [...translatableElements].map((element) => [element, element.textContent]),
 );
 const polishAriaLabels = new Map(
   [...ariaTranslatableElements].map((element) => [element, element.getAttribute("aria-label")]),
 );
+const copyMessages = {
+  pl: {
+    phone: "Numer telefonu skopiowany do schowka.",
+    email: "Adres e-mail skopiowany do schowka.",
+    failure: "Kopiowanie się nie udało. Zaznacz i skopiuj tekst ręcznie.",
+  },
+  en: {
+    phone: translations.en.copyPhoneSuccess,
+    email: translations.en.copyEmailSuccess,
+    failure: translations.en.copyFailure,
+  },
+};
+let currentLanguage = defaultLanguage;
 
 function hasTranslation(language) {
   return Object.prototype.hasOwnProperty.call(translations, language);
@@ -171,12 +193,34 @@ function translatePage(language) {
   });
 
   document.documentElement.lang = language;
+  currentLanguage = language;
   document.title = dictionary.pageTitle;
   description.setAttribute("content", dictionary.pageDescription);
 
   languageButtons.forEach((button) => {
     button.setAttribute("aria-pressed", String(button.dataset.language === language));
   });
+}
+
+async function copyText(value) {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const temporaryInput = document.createElement("textarea");
+  temporaryInput.value = value;
+  temporaryInput.setAttribute("readonly", "");
+  temporaryInput.style.position = "fixed";
+  temporaryInput.style.opacity = "0";
+  document.body.append(temporaryInput);
+  temporaryInput.select();
+  const copied = document.execCommand("copy");
+  temporaryInput.remove();
+
+  if (!copied) {
+    throw new Error("Copy command was not accepted.");
+  }
 }
 
 function setLanguage(language) {
@@ -187,6 +231,17 @@ function setLanguage(language) {
 
 languageButtons.forEach((button) => {
   button.addEventListener("click", () => setLanguage(button.dataset.language));
+});
+
+copyButtons.forEach((button) => {
+  button.addEventListener("click", async () => {
+    try {
+      await copyText(button.dataset.copy);
+      copyStatus.textContent = copyMessages[currentLanguage][button.dataset.copyType];
+    } catch {
+      copyStatus.textContent = copyMessages[currentLanguage].failure;
+    }
+  });
 });
 
 const savedLanguage = getStoredLanguage();
