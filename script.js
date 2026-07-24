@@ -121,6 +121,7 @@ const translations = {
     contactEyebrow: "Contact",
     contactTitle: "Let’s talk",
     contactCopy: "I will be happy to answer questions about my availability and working together.",
+    priceOptInfo: "cost optimization",
   },
 };
 
