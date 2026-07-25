@@ -122,6 +122,7 @@ const translations = {
     contactTitle: "Let’s talk",
     contactCopy: "I will be happy to answer questions about my availability and working together.",
     priceOptInfo: "cost optimization",
+    gdprClause: "I consent to the processing of my personal data for the purposes of current and future recruitment processes.",
   },
 };
 
